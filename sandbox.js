@@ -103,17 +103,18 @@ function init() {
                 }
         }
     });
-    ////
+
     canvas.addEventListener('touchstart', function(event) 
     {
         isDrag = true;
     });
 
+
     canvas.addEventListener('touchend', function(event) 
     {
         isDrag = false;
     });
-
+  
     canvas.addEventListener('touchmove',function(event)
     {
         if (isDrag)
@@ -144,6 +145,7 @@ function init() {
                 }
         }
     });
+
     var stepIntervalID = setInterval(()=>step(board,steam, steamCounter),0);
     var drawIntervalID = setInterval(()=>draw(board,ctx,k),0);
 }
