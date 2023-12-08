@@ -1,0 +1,23 @@
+<!doctype html>
+<script src="sandbox.js"></script>
+<html>
+	<head>
+		<title>sandbox</title>
+	</head>
+	<body>
+            <header>
+                Размер частиц:<input id="k" type="range" min=1 step = 1 max=15 oninput="javascript: SetK_Sz()">
+                Размер поля: <input id="sz" type="range" min=100 step = 100 max=1500 oninput="javascript: SetK_Sz()">
+                Частица: 
+                <select id="particle">
+                    <option>Песок</option>
+                    <option>Кирпич</option>
+                    <option>Вода</option>
+                    <option>Пар</option>
+                </select>
+                <input type="button" value="Очистить" onclick="javascript: SetK_Sz()">
+            </header>
+            <canvas id='board'></canvas>
+            <script>init()</script>
+	</body>
+</html>
