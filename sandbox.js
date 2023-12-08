@@ -75,6 +75,44 @@ function init() {
                 }
         }
     });
+
+    canvas.addEventListener('mousedown', function(event) 
+    {
+        isDrag = true;
+    });
+
+    canvas.addEventListener('mouseup', function(event) 
+    {
+        isDrag = false;
+    });
+
+    canvas.addEventListener('touchstart', function(event)
+    {
+        var x = Math.floor(event.changedTouches[0].clientX/k);
+        var y = Math.floor(event.changedTouches[0].clientY/k);
+        for (var i = x-5;i<x+5;i++)
+            for (var j = y - 5;j<y+5;j++)
+            {
+                if ((i>0) && (i<board[0].length-1) && board[i][j] == 0)
+                    if (Math.random() > 0.9) 
+                    {
+                        var particle = document.getElementById('particle').value;
+                        if (particle == 'Песок')
+                            board[i][j] = 1;
+                        else if (particle == 'Кирпич')
+                            board[i][j] = 2;
+                        else if (particle == 'Вода')
+                        {
+                            if (Math.random() > 0.5)
+                                board[i][j] = 3;
+                            else
+                                board[i][j] = 4;
+                        }
+                        else if (particle == 'Пар')
+                            board[i][j] = 5;
+                    }
+            } 
+    })
     var stepIntervalID = setInterval(()=>step(board,steam, steamCounter),0);
     var drawIntervalID = setInterval(()=>draw(board,ctx,k),0);
 }
