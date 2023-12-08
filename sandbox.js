@@ -114,13 +114,15 @@ function init() {
     {
         isDrag = false;
     });
-  
-    canvas.addEventListener('touchmove',function(event)
+
+    canvas.addEventListener('touchmove', function(event)
     {
         if (isDrag)
         {
-            var x = Math.floor(event.offsetX/k);
-            var y = Math.floor(event.offsetY/k);
+            touchStart = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+            touchPosition = { x: touchStart.x, y: touchStart.y };
+            var x = Math.floor(touchPosition.x/k);
+            var y = Math.floor(touchPosition.y/k);
             for (var i = x-5;i<x+5;i++)
                 for (var j = y - 5;j<y+5;j++)
                 {
@@ -142,10 +144,10 @@ function init() {
                             else if (particle == 'Пар')
                                 board[i][j] = 5;
                         }
-                }
-        }
+                } 
+            }
     });
-
+  
     var stepIntervalID = setInterval(()=>step(board,steam, steamCounter),0);
     var drawIntervalID = setInterval(()=>draw(board,ctx,k),0);
 }
