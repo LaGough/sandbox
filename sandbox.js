@@ -302,6 +302,11 @@ function step(board,steamArr, earthArr, fireArr, brickArr, seedArr)
                 break;
             
             case water_left:
+                if (fireArr[i][j-1])
+                {
+                    board[i][j-1] = steam_left;
+                    break;
+                }
                 if ((board[i][j] == empty) || (board[i][j] == steam_left) || (board[i][j] == steam_right))
                 {
                     var buf = board[i][j];
@@ -334,6 +339,11 @@ function step(board,steamArr, earthArr, fireArr, brickArr, seedArr)
                 break;
 
             case water_right:
+                if (fireArr[i][j-1])
+                {
+                    board[i][j-1] = steam_right;
+                    break;
+                }
                 if ((board[i][j] == empty) || (board[i][j] == steam_left) || (board[i][j] == steam_right))
                 {
                     var buf = board[i][j];
