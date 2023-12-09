@@ -1,3 +1,13 @@
+const empty = 0;
+const sand = 1;
+const brick = 2;
+const water_left = 3;
+const water_right = 4;
+const steam_left = 5;
+const steam_right = 6;
+const earth = 7;
+const fire = 8;
+
 if (localStorage.getItem('k') == undefined)
 {
     localStorage.setItem('sz',950);
@@ -5,9 +15,14 @@ if (localStorage.getItem('k') == undefined)
 }
 
 function init() { 
-    let k = +localStorage.getItem('k');
-    let sz = +localStorage.getItem('sz');
-    let steamCounter = 100;
+    var k = +localStorage.getItem('k');
+    var sz = +localStorage.getItem('sz');
+    var steamCounter = 500;
+    var earthCounter = 500;
+    var fireCounter = 4;
+    var brickCounter = 25;
+    var isDrag = false; 
+
     document.getElementById("k").setAttribute('value',k);
     document.getElementById("sz").setAttribute('value',sz); 
 
@@ -17,27 +32,58 @@ function init() {
 	var ctx = canvas.getContext("2d");
 	    ctx.fillStyle = "black";
 	    ctx.fillRect(0, 0, canvas.width, canvas.height);  
-    
-    var isDrag = false; 
+
     var board = new Array(Math.floor(canvas.width/k));
     for (var i=0;i<board.length;i++)
     {
         board[i] = new Array(Math.floor(canvas.height/k));
         for (var j = 0;j < board[i].length;j++)
-            board[i][j] = 0;
+            board[i][j] = empty;
     }
 
-    var steam = new Array(Math.floor(canvas.width/k));
-    for (var i=0;i<steam.length;i++)
+    var steamArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<steamArr.length;i++)
     {
-        steam[i] = new Array(Math.floor(canvas.height/k));
-        for (var j = 0;j < steam[i].length;j++)
-            steam[i][j] = 0;
+        steamArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < steamArr[i].length;j++)
+            steamArr[i][j] = empty;
+    }
+
+    var earthArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<earthArr.length;i++)
+    {
+        earthArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < earthArr[i].length;j++)
+            earthArr[i][j] = empty;
+    }
+
+    var fireArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<fireArr.length;i++)
+    {
+        fireArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < fireArr[i].length;j++)
+            fireArr[i][j] = empty;
+    }
+
+    var brickArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<brickArr.length;i++)
+    {
+        brickArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < brickArr[i].length;j++)
+            brickArr[i][j] = empty;
     }
 
     canvas.addEventListener('mousedown', function(event) 
     {
-        isDrag = true;
+        if (event.button == 0)
+            isDrag = true;
+        else
+            isClear = true;
+    });
+
+    canvas.addEventListener('mouseover', function (event)
+    {
+        isDrag = false;
     });
 
     canvas.addEventListener('mouseup', function(event) 
@@ -47,62 +93,8 @@ function init() {
 
     canvas.addEventListener('touchstart', function(event)
     {
-        var x = Math.floor(event.offsetX/k);
-        var y = Math.floor(event.offsetY/k);
-        for (var i = x-5;i<x+5;i++)
-            for (var j = y - 5;j<y+5;j++)
-            {
-                if ((i>0) && (i<board[0].length-1) && board[i][j] == 0)
-                    if (Math.random() > 0.9) 
-                    {
-                        var particle = document.getElementById('particle').value;
-                        if (particle == 'Песок')
-                            board[i][j] = 1;
-                        else if (particle == 'Кирпич')
-                            board[i][j] = 2;
-                        else if (particle == 'Вода')
-                        {
-                            if (Math.random() > 0.5)
-                                board[i][j] = 3;
-                            else
-                                board[i][j] = 4;
-                        }
-                        else if (particle == 'Пар')
-                            board[i][j] = 5;
-                    }
-            } 
+        isDrag = true;
     })
-
-    canvas.addEventListener('mousemove',function(event)
-    {
-        if (isDrag)
-        {
-            var x = Math.floor(event.offsetX/k);
-            var y = Math.floor(event.offsetY/k);
-            for (var i = x-5;i<x+5;i++)
-                for (var j = y - 5;j<y+5;j++)
-                {
-                    if ((i>0) && (i<board[0].length-1) && board[i][j] == 0)
-                        if (Math.random() > 0.9) 
-                        {
-                            var particle = document.getElementById('particle').value;
-                            if (particle == 'Песок')
-                                board[i][j] = 1;
-                            else if (particle == 'Кирпич')
-                                board[i][j] = 2;
-                            else if (particle == 'Вода')
-                            {
-                                if (Math.random() > 0.5)
-                                    board[i][j] = 3;
-                                else
-                                    board[i][j] = 4;
-                            }
-                            else if (particle == 'Пар')
-                                board[i][j] = 5;
-                        }
-                }
-        }
-    });
 
     canvas.addEventListener('touchstart', function(event) 
     {
@@ -123,33 +115,66 @@ function init() {
             touchPosition = { x: touchStart.x, y: touchStart.y };
             var x = Math.floor(touchPosition.x/k);
             var y = Math.floor(touchPosition.y/k);
-            for (var i = x-5;i<x+5;i++)
-                for (var j = y - 5;j<y+5;j++)
+            addParticleToTheBoard(board,x,y,fireArr)
+        }
+    });
+
+    canvas.addEventListener('mousemove',function(event)
+    {
+        if (isDrag)
+        {
+            var x = Math.floor(event.offsetX/k);
+            var y = Math.floor(event.offsetY/k);
+            addParticleToTheBoard(board,x,y, fireArr);
+        }
+    });
+  
+    var stepIntervalID = setInterval(()=>step(board,steamArr, steamCounter, earthArr, earthCounter, fireArr, fireCounter, brickArr, brickCounter),0);
+    var drawIntervalID = setInterval(()=>draw(board,ctx,k,fireArr),0);
+}
+
+function addParticleToTheBoard(board,x,y,fireArr)
+{
+    var particle = document.getElementById('particle').value;
+    if (particle == 'Ластик')
+        for (var i = x-1;i<x+1;i++)
+            for (var j = y - 1;j<y+1;j++)
+                board[i][j] = empty;
+    else
+        for (var i = x-5;i<x+5;i++)
+            for (var j = y - 5;j<y+5;j++)
+            {
+                if ((i>0) && (i<board[0].length-1) && (j<board.length-1) && (j>0))
                 {
-                    if ((i>0) && (i<board[0].length-1) && board[i][j] == 0)
+                    if (particle == 'Огонь')
+                        if (Math.random() > 0.95)
+                            fireArr[i][j] = 1;
+                    if (board[i][j] == 0)   
                         if (Math.random() > 0.9) 
                         {
-                            var particle = document.getElementById('particle').value;
                             if (particle == 'Песок')
-                                board[i][j] = 1;
+                                board[i][j] = sand;
                             else if (particle == 'Кирпич')
-                                board[i][j] = 2;
+                                board[i][j] = brick;
                             else if (particle == 'Вода')
                             {
                                 if (Math.random() > 0.5)
-                                    board[i][j] = 3;
+                                    board[i][j] = water_left;
                                 else
-                                    board[i][j] = 4;
+                                    board[i][j] = water_right;
                             }
                             else if (particle == 'Пар')
-                                board[i][j] = 5;
+                            {
+                                if (Math.random() > 0.5)
+                                    board[i][j] = steam_left;
+                                else
+                                    board[i][j] = steam_right;
+                            }
+                            else if (particle == 'Земля')
+                                board[i][j] = earth;
                         }
-                } 
-            }
-    });
-  
-    var stepIntervalID = setInterval(()=>step(board,steam, steamCounter),0);
-    var drawIntervalID = setInterval(()=>draw(board,ctx,k),0);
+                }
+            } 
 }
 
 function SetK_Sz()
@@ -161,27 +186,30 @@ function SetK_Sz()
     location.reload();
 }
 
-function draw(board,ctx,k)
+function draw(board,ctx,k, fireArr)
 {
     for (var i=0;i<board.length;i++)
         for (var j=0;j<board[i].length;j++)
         {
             switch (board[i][j])
             {
-                case 0: ctx.fillStyle = "black"; break;
-                case 1: ctx.fillStyle = "yellow"; break;
-                case 2: ctx.fillStyle = "red"; break;
-                case 3: ctx.fillStyle = "blue"; break;
-                case 4: ctx.fillStyle = "blue"; break;
-                case 5: ctx.fillStyle = "gray"; break;
-                case 6: ctx.fillStyle = "gray"; break;
+                case empty: ctx.fillStyle = "black"; break;
+                case sand: ctx.fillStyle = "yellow"; break;
+                case brick: ctx.fillStyle = "#800000"; break;
+                case water_left: ctx.fillStyle = "blue"; break;
+                case water_right: ctx.fillStyle = "blue"; break;
+                case steam_left: ctx.fillStyle = "gray"; break;
+                case steam_right: ctx.fillStyle = "gray"; break;
+                case earth: ctx.fillStyle = "#964b00"; break;
             }
+            if (fireArr[i][j]>empty)
+                ctx.fillStyle = "#FDA50F";
             ctx.fillRect(i*k,j*k,k,k);
         }
             
 }
 
-function step(board,steam,steamCounter)
+function step(board,steamArr,steamCounter, earthArr, earthCounter, fireArr, fireCounter, brickArr, brickCounter)
 {
     //down
     for(var j=board[0].length-1;j>0;j--)
@@ -189,194 +217,276 @@ function step(board,steam,steamCounter)
         {
             switch (board[i][j-1])
             {
-            case 1: //sand
-                if (board[i][j] == 0)
+            case sand:
+                //to earth
+                if (board[i][j-2] == water_left || board[i][j-2] == water_right || board[i+1][j-2] == water_left || board[i+1][j-2] == water_right || board[i-1][j-2] == water_left || board[i-1][j-2] == water_right || board[i+1][j-1] == water_left || board[i+1][j-1] == water_right || board[i-1][j-1] == water_left || board[i-1][j-1] == water_right)
+                    earthArr[i][j-1] = earthArr[i][j-1]+1; 
+                if (earthArr[i][j-1]>earthCounter)
                 {
-                    board[i][j] = 1;
-                    board[i][j-1] = 0;
+                    board[i][j-1] = 7;
+                    earthArr[i][j-1] = empty;
                 }
-                else if (board[i-1][j] == 0)
+
+                //to brick
+                if (fireArr[i][j-1] > 0)
+                    brickArr[i][j-1] = brickArr[i][j-1]+1;
+                if (brickArr[i][j-1]>brickCounter)
                 {
-                    board[i-1][j] = 1;
-                    board[i][j-1] = 0;
+                    brickArr[i][j-1] = empty;
+                    board[i][j-1] = brick;
                 }
-                else if (board[i+1][j] == 0)
+
+                if ((board[i][j] == empty) || (board[i][j] == water_left) || (board[i][j] == water_right))
                 {
-                    board[i+1][j] = 1;
-                    board[i][j-1] = 0;
+                    var buf = board[i][j];
+                    board[i][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = earthArr[i][j];
+                    earthArr[i][j] = earthArr[i][j-1];
+                    earthArr[i][j-1] = buf;
+                }
+                else if ((board[i-1][j] == empty) || (board[i-1][j] == water_left) || (board[i-1][j] == water_right))
+                {
+                    var buf = board[i-1][j];
+                    board[i-1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = earthArr[i-1][j];
+                    earthArr[i-1][j] = earthArr[i][j-1];
+                    earthArr[i][j-1] = buf;
+                }
+                else if ((board[i+1][j] == empty) || (board[i+1][j] == water_left) || (board[i+1][j] == water_right))
+                {
+                    var buf = board[i+1][j];
+                    board[i+1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = earthArr[i+1][j];
+                    earthArr[i+1][j] = earthArr[i][j-1];
+                    earthArr[i][j-1] = buf;
                 }
                 break;
             
-            case 3: //water left
-                if (board[i][j] == 0)
+            case water_left:
+                if ((board[i][j] == empty) || (board[i][j] == steam_left) || (board[i][j] == steam_right))
                 {
-                    board[i][j] = 3;
-                    board[i][j-1] = 0;
+                    var buf = board[i][j];
+                    board[i][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i-1][j] == 0)
+                else if ((board[i-1][j] == empty)  || (board[i-1][j] == steam_left) || (board[i-1][j] == steam_right))
                 {
-                    board[i-1][j] = 3;
-                    board[i][j-1] = 0;
+                    var buf = board[i-1][j];
+                    board[i-1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i+1][j] == 0)
+                else if ((board[i+1][j] == empty) || (board[i+1][j] == steam_left) || (board[i+1][j] == steam_right))
                 {
-                    board[i+1][j] = 3;
-                    board[i][j-1] = 0;
+                    var buf = board[i+1][j];
+                    board[i+1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i-1][j-1] == 0)
+                else if ((board[i-1][j-1] == empty) || (board[i-1][j-1] == steam_left) || (board[i-1][j-1] == steam_right))
                 {
-                    board[i-1][j-1] = 4;
-                    board[i][j-1] = 0;
+                    board[i][j-1] = board[i-1][j-1];
+                    board[i-1][j-1] = water_right;
                 }
-                else if (board[i+1][j-1] == 0)
+                else if ((board[i+1][j-1] == empty) || (board[i+1][j+1] == steam_left) || (board[i+1][j+1] == steam_right))
                 {
-                    board[i+1][j-1] = 3;
-                    board[i][j-1] = 0;
+                    var buf = board[i+1][j-1];
+                    board[i+1][j-1] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
                 break;
 
-            case 4: //water right
-                if (board[i][j] == 0)
+            case water_right:
+                if ((board[i][j] == empty) || (board[i][j] == steam_left) || (board[i][j] == steam_right))
                 {
-                    board[i][j] = 4;
-                    board[i][j-1] = 0;
+                    var buf = board[i][j];
+                    board[i][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i-1][j] == 0)
+                else if ((board[i-1][j] == empty)  || (board[i-1][j] == steam_left) || (board[i-1][j] == steam_right))
                 {
-                    board[i-1][j] = 4;
-                    board[i][j-1] = 0;
+                    var buf = board[i-1][j];
+                    board[i-1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i+1][j] == 0)
+                else if ((board[i+1][j] == empty) || (board[i+1][j] == steam_left) || (board[i+1][j] == steam_right))
                 {
-                    board[i+1][j] = 4;
-                    board[i][j-1] = 0;
+                    var buf = board[i+1][j];
+                    board[i+1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i+1][j-1] == 0)
+                else if ((board[i+1][j-1] == empty) || (board[i+1][j+1] == steam_left) || (board[i+1][j+1] == steam_right))
                 {
-                    board[i+1][j-1] = 4;
-                    board[i][j-1] = 0;
+                    var buf = board[i+1][j-1];
+                    board[i+1][j-1] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
-                else if (board[i-1][j-1] == 0)
+                else if ((board[i-1][j-1] == empty) || (board[i-1][j-1] == steam_left) || (board[i-1][j-1] == steam_right))
                 {
-                    board[i-1][j-1] = 3;
-                    board[i][j-1] = 0;
+                    board[i][j-1] = board[i-1][j-1];
+                    board[i-1][j-1] = water_left;
+                }
+                break;
+                
+            case earth: //earth
+                if ((board[i][j] == empty) || (board[i][j] == water_left) || (board[i][j] == water_right))
+                {
+                    var buf = board[i][j];
+                    board[i][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+                }
+                else if ((board[i-1][j] == empty) || (board[i-1][j] == water_left) || (board[i-1][j] == water_right))
+                {
+                    var buf = board[i-1][j];
+                    board[i-1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+                }
+                else if ((board[i+1][j] == empty) || (board[i+1][j] == water_left) || (board[i+1][j] == water_right))
+                {
+                    var buf = board[i+1][j];
+                    board[i+1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
                 }
                 break;
             } 
+            if (fireArr[i][j-1] > empty)
+            {
+                fireArr[i][j-1] = fireArr[i][j-1] + 1;
+                if (fireArr[i][j-1] >= fireCounter)
+                    fireArr[i][j-1] = empty;
+            }
         }    
 
     //up
-    for(var j=1;j<board[0].length;j++)
+    for(var j=0;j<board[0].length-1;j++)
         for(var i=1;i<board.length-1;i++)
         {
             switch (board[i][j])
             {
-                case 5: //steam left
-                    if (steam[i][j]>steamCounter)
+                case steam_left:
+                    steamArr[i][j] += 1;
+                    if (steamArr[i][j]>steamCounter)
                     {
                         if (Math.random()>0.5)
-                            board[i][j]=3;
-                        steam[i][j] = 0;
+                            board[i][j] = water_left;
+                        steamArr[i][j] = empty;
                     }
-                    else if (board[i][j-1] == 0)
+                    if (board[i][j-1] == empty)
                     {
-                        board[i][j-1] = 5;
-                        board[i][j] = 0;
-
-                        steam[i][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
-                    }
-                    else if (board[i-1][j-1] == 0)
-                    {
-                        board[i-1][j-1] = 5;
-                        board[i][j] = 0;
-
-                        steam[i-1][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
-                    }
-                    else if (board[i+1][j-1] == 0)
-                    {
-                        board[i+1][j-1] = 5;
-                        board[i][j] = 0;
-
-                        steam[i+1][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
-                    }
-                    else if (board[i-1][j] == 0)
-                    {
-                        board[i-1][j] = 6;
-                        board[i][j] = 0;
-
-                        steam[i-1][j] = steam[i][j]+1;
-                        steam[i][j] = 0;
-                    }
-                    else if (board[i+1][j] == 0)
-                    {
-                        board[i+1][j] = 5;
-                        board[i][j] = 0;
+                        var buf = board[i][j];
+                        board[i][j] = board[i][j-1];
+                        board[i][j-1] = buf;
                         
-                        steam[i+1][j] = steam[i][j]+1;
-                        steam[i][j] = 0;
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i][j-1];
+                        steamArr[i][j-1] = buf;
                     }
-                    else
+                    else if (board[i-1][j-1] == empty)
                     {
-                        steam[i][j] += 1;
+                        var buf = board[i][j];
+                        board[i][j] = board[i-1][j-1];
+                        board[i-1][j-1] = buf;
+
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i-1][j-1];
+                        steamArr[i+1][j-1] = buf;
+                    }
+                    else if (board[i+1][j-1] == empty)
+                    {
+                        var buf = board[i][j];
+                        board[i][j] = board[i+1][j-1];
+                        board[i+1][j-1] = buf;
+
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i+1][j-1];
+                        steamArr[i+1][j-1] = buf;
+                    }
+                    else if (board[i-1][j] == empty)
+                    {
+                        var buf = board[i][j];
+                        board[i][j] = board[i-1][j];
+                        board[i-1][j] = steam_right;
+
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i-1][j];
+                        steamArr[i-1][j] = buf;
+                    }
+                    else if (board[i+1][j] == empty)
+                    {
+                        var buf = board[i][j];
+                        board[i][j] = board[i+1][j];
+                        board[i+1][j] = buf;
+
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i+1][j];
+                        steamArr[i+1][j] = buf
                     }
                     break;
 
-                case 6: //steam right
-                    if (steam[i][j]>steamCounter)
+                case steam_right:
+                    steamArr[i][j] += 1;
+                    if (steamArr[i][j]>steamCounter)
                     {
                         if (Math.random()>0.5)
-                            board[i][j]=4;
-                        steam[i][j]=0;
+                            board[i][j]=water_right;
+                        steamArr[i][j]=empty;
                     }
-                    else if (board[i][j-1] == 0)
+                    else if (board[i][j-1] == empty)
                     {
-                        board[i][j-1] = 6;
-                        board[i][j] = 0;
+                        var buf = board[i][j];
+                        board[i][j] = board[i][j-1];
+                        board[i][j-1] = buf;
 
-                        steam[i][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i][j-1];
+                        steamArr[i][j-1] = buf
                     }
-                    else if (board[i-1][j-1] == 0)
+                    else if (board[i-1][j-1] == empty)
                     {
-                        board[i-1][j-1] = 6;
-                        board[i][j] = 0;
+                        var buf = board[i][j];
+                        board[i][j] = board[i-1][j-1];
+                        board[i-1][j-1] = buf;
 
-                        steam[i-1][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
-                    }
-                    else if (board[i+1][j-1] == 0)
-                    {
-                        board[i+1][j-1] = 6;
-                        board[i][j] = 0;
 
-                        steam[i+1][j-1] = steam[i][j]+1;
-                        steam[i][j] = 0;
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i-1][j-1];
+                        steamArr[i-1][j-1] = buf
                     }
-                    else if (board[i+1][j] == 0)
+                    else if (board[i+1][j-1] == empty)
                     {
-                        board[i+1][j] = 6;
-                        board[i][j] = 0;
+                        var buf = board[i][j];
+                        board[i][j] = board[i+1][j-1];
+                        board[i+1][j-1] = buf;
 
-                        steam[i+1][j] = steam[i][j]+1;
-                        steam[i][j] = 0;
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i+1][j-1];
+                        steamArr[i+1][j-1] = buf
                     }
-                    else if (board[i-1][j] == 0)
+                    else if (board[i+1][j] == empty)
                     {
-                        board[i-1][j] = 5;
-                        board[i][j] = 0;
+                        var buf = board[i][j];
+                        board[i][j] = board[i+1][j];
+                        board[i+1][j] = buf;
 
-                        steam[i-1][j] = steam[i][j]+1;
-                        steam[i][j] = 0;
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i+1][j];
+                        steamArr[i+1][j] = buf;
                     }
-                    else
+                    else if (board[i-1][j] == empty)
                     {
-                        steam[i][j] += 1;
+                        var buf = board[i][j];
+                        board[i][j] = board[i-1][j];
+                        board[i-1][j] = steam_left;
+
+                        buf = steamArr[i][j];
+                        steamArr[i][j] = steamArr[i-1][j];
+                        steamArr[i-1][j] = buf
                     }
                     break;
             }
-        }
-        
+        }       
 }
