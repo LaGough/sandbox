@@ -1,3 +1,10 @@
+const steamCounter = 500;
+const earthCounter = 500;
+const fireCounter = 4;
+const brickCounter = 25;
+const seedCounter = 500;
+const grassCounter = 500;
+
 const empty = 0;
 const sand = 1;
 const brick = 2;
@@ -7,6 +14,9 @@ const steam_left = 5;
 const steam_right = 6;
 const earth = 7;
 const fire = 8;
+const seed = 9;
+const grass = 10;
+const seedToGrass = 11;
 
 if (localStorage.getItem('k') == undefined)
 {
@@ -17,10 +27,6 @@ if (localStorage.getItem('k') == undefined)
 function init() { 
     var k = +localStorage.getItem('k');
     var sz = +localStorage.getItem('sz');
-    var steamCounter = 500;
-    var earthCounter = 500;
-    var fireCounter = 4;
-    var brickCounter = 25;
     var isDrag = false; 
 
     document.getElementById("k").setAttribute('value',k);
@@ -73,12 +79,29 @@ function init() {
             brickArr[i][j] = empty;
     }
 
+    var seedArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<seedArr.length;i++)
+    {
+        seedArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < seedArr[i].length;j++)
+            seedArr[i][j] = empty;
+    }
+
+    var grassArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<grassArr.length;i++)
+    {
+        grassArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < grassArr[i].length;j++)
+            grassArr[i][j] = empty;
+    }
+
     canvas.addEventListener('mousedown', function(event) 
     {
-        if (event.button == 0)
-            isDrag = true;
-        else
-            isClear = true;
+        isDrag = true;
+        var x = Math.floor(event.offsetX/k);
+        var y = Math.floor(event.offsetY/k);
+        addParticleToTheBoard(board,x,y, fireArr);
+
     });
 
     canvas.addEventListener('mouseover', function (event)
@@ -99,6 +122,11 @@ function init() {
     canvas.addEventListener('touchstart', function(event) 
     {
         isDrag = true;
+        touchStart = { x: event.changedTouches[0].clientX, y: event.changedTouches[0].clientY };
+        touchPosition = { x: touchStart.x, y: touchStart.y };
+        var x = Math.floor(touchPosition.x/k);
+        var y = Math.floor(touchPosition.y/k);
+        addParticleToTheBoard(board,x,y,fireArr);
     });
 
 
@@ -115,7 +143,7 @@ function init() {
             touchPosition = { x: touchStart.x, y: touchStart.y };
             var x = Math.floor(touchPosition.x/k);
             var y = Math.floor(touchPosition.y/k);
-            addParticleToTheBoard(board,x,y,fireArr)
+            addParticleToTheBoard(board,x,y,fireArr);
         }
     });
 
@@ -129,14 +157,16 @@ function init() {
         }
     });
   
-    var stepIntervalID = setInterval(()=>step(board,steamArr, steamCounter, earthArr, earthCounter, fireArr, fireCounter, brickArr, brickCounter),0);
+    var stepIntervalID = setInterval(()=>step(board,steamArr, earthArr, fireArr, brickArr, seedArr),0);
     var drawIntervalID = setInterval(()=>draw(board,ctx,k,fireArr),0);
 }
 
 function addParticleToTheBoard(board,x,y,fireArr)
 {
     var particle = document.getElementById('particle').value;
-    if (particle == 'Ластик')
+    if (particle == 'Семечко')
+        board[x][y] = seed;
+    else if (particle == 'Ластик')
         for (var i = x-1;i<x+1;i++)
             for (var j = y - 1;j<y+1;j++)
                 board[i][j] = empty;
@@ -201,6 +231,9 @@ function draw(board,ctx,k, fireArr)
                 case steam_left: ctx.fillStyle = "gray"; break;
                 case steam_right: ctx.fillStyle = "gray"; break;
                 case earth: ctx.fillStyle = "#964b00"; break;
+                case seed: ctx.fillStyle = "#99FF99"; break;
+                case seedToGrass: ctx.fillStyle = "#99FF99"; break;
+                case grass: ctx.fillStyle = "green"; break;
             }
             if (fireArr[i][j]>empty)
                 ctx.fillStyle = "#FDA50F";
@@ -209,7 +242,7 @@ function draw(board,ctx,k, fireArr)
             
 }
 
-function step(board,steamArr,steamCounter, earthArr, earthCounter, fireArr, fireCounter, brickArr, brickCounter)
+function step(board,steamArr, earthArr, fireArr, brickArr, seedArr)
 {
     //down
     for(var j=board[0].length-1;j>0;j--)
@@ -352,6 +385,46 @@ function step(board,steamArr,steamCounter, earthArr, earthCounter, fireArr, fire
                     board[i][j-1] = buf;
                 }
                 break;
+            case seed:
+                if (board[i][j] == earth)
+                    seedArr[i][j-1] = seedArr[i][j-1]+1;
+                if (seedArr[i][j-1]>seedCounter)
+                {
+                    seedArr[i][j-1] = empty;
+                    board[i][j-1] = seedToGrass;
+                    board[i][j-2] = grass;
+                }
+                if ((board[i][j] == empty) || (board[i][j] == water_left) || (board[i][j] == water_right))
+                {
+                    var buf = board[i][j];
+                    board[i][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = seedArr[i][j];
+                    seedArr[i][j] = seedArr[i][j-1];
+                    seedArr[i][j-1] = buf;
+                }
+                else if ((board[i-1][j] == empty) || (board[i-1][j] == water_left) || (board[i-1][j] == water_right))
+                {
+                    var buf = board[i-1][j];
+                    board[i-1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = seedArr[i-1][j];
+                    seedArr[i-1][j] = seedArr[i][j-1];
+                    seedArr[i][j-1] = buf;
+                }
+                else if ((board[i+1][j] == empty) || (board[i+1][j] == water_left) || (board[i+1][j] == water_right))
+                {
+                    var buf = board[i+1][j];
+                    board[i+1][j] = board[i][j-1];
+                    board[i][j-1] = buf;
+
+                    buf = seedArr[i+1][j];
+                    seedArr[i+1][j] = seedArr[i][j-1];
+                    seedArr[i][j-1] = buf;
+                }
+                break;
             } 
             if (fireArr[i][j-1] > empty)
             {
@@ -487,6 +560,8 @@ function step(board,steamArr,steamCounter, earthArr, earthCounter, fireArr, fire
                         steamArr[i-1][j] = buf
                     }
                     break;
+                //case seedToGrass:
+                    
             }
         }       
 }
