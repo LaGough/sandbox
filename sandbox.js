@@ -2,8 +2,8 @@ const steamCounter = 500;
 const earthCounter = 500;
 const fireCounter = 4;
 const brickCounter = 25;
-const seedCounter = 500;
-const grassCounter = 500;
+const seedCounter = 1;
+const grassCounter = 10;
 
 const empty = 0;
 const sand = 1;
@@ -18,19 +18,22 @@ const seed = 9;
 const grass = 10;
 const seedToGrass = 11;
 
-if (localStorage.getItem('k') == undefined)
+var k = +localStorage.getItem('k');
+var sz = +localStorage.getItem('sz');
+var grassLength = +localStorage.getItem('grassLength');
+
+if ((localStorage.getItem('k') == undefined) || (localStorage.getItem('sz') == undefined) || (localStorage.getItem('grassLength') == undefined))
 {
-    localStorage.setItem('sz',950);
+    localStorage.setItem('sz',900);
     localStorage.setItem('k',10);  
+    localStorage.setItem('grassLength',20);  
 }
 
 function init() { 
-    var k = +localStorage.getItem('k');
-    var sz = +localStorage.getItem('sz');
     var isDrag = false; 
-
     document.getElementById("k").setAttribute('value',k);
     document.getElementById("sz").setAttribute('value',sz); 
+    document.getElementById("grassLength").setAttribute('value',grassLength);
 
     var canvas = document.getElementById("board");
 	    canvas.width = sz;
@@ -157,8 +160,8 @@ function init() {
         }
     });
   
-    var stepIntervalID = setInterval(()=>step(board,steamArr, earthArr, fireArr, brickArr, seedArr),0);
-    var drawIntervalID = setInterval(()=>draw(board,ctx,k,fireArr),0);
+    var stepIntervalID = setInterval(()=>step(board,steamArr, earthArr, fireArr, brickArr, seedArr, grassArr),0);
+    var drawIntervalID = setInterval(()=>draw(board,ctx,fireArr),0);
 }
 
 function addParticleToTheBoard(board,x,y,fireArr)
@@ -211,12 +214,14 @@ function SetK_Sz()
 {
     let k = document.getElementById("k").value;
     let sz = document.getElementById("sz").value;
+    let grLength = document.getElementById("grassLength").value;
     localStorage.setItem('sz',sz);
     localStorage.setItem('k',k);
+    localStorage.setItem('grassLength',grLength);
     location.reload();
 }
 
-function draw(board,ctx,k, fireArr)
+function draw(board,ctx, fireArr)
 {
     for (var i=0;i<board.length;i++)
         for (var j=0;j<board[i].length;j++)
@@ -232,7 +237,7 @@ function draw(board,ctx,k, fireArr)
                 case steam_right: ctx.fillStyle = "gray"; break;
                 case earth: ctx.fillStyle = "#964b00"; break;
                 case seed: ctx.fillStyle = "#99FF99"; break;
-                case seedToGrass: ctx.fillStyle = "#99FF99"; break;
+                case seedToGrass: ctx.fillStyle = "#99FF99"; break; 
                 case grass: ctx.fillStyle = "green"; break;
             }
             if (fireArr[i][j]>empty)
@@ -242,7 +247,7 @@ function draw(board,ctx,k, fireArr)
             
 }
 
-function step(board,steamArr, earthArr, fireArr, brickArr, seedArr)
+function step(board,steamArr, earthArr, fireArr, brickArr, seedArr, grassArr)
 {
     //down
     for(var j=board[0].length-1;j>0;j--)
@@ -569,9 +574,42 @@ function step(board,steamArr, earthArr, fireArr, brickArr, seedArr)
                         steamArr[i][j] = steamArr[i-1][j];
                         steamArr[i-1][j] = buf
                     }
-                    break;
-                //case seedToGrass:
-                    
+                break;
+
+                case seedToGrass:
+                    var x = i;
+                    var y = j-1;
+                    for(var k=0; k<grassLength;k++)
+                    {
+                        if ((board[i][y] != grass) || (board[i+1][y] != grass) || (board[i-1][y] != grass))
+                            if (board[x][y] != grass)
+                            {
+                                grassArr[x][y] = grassArr[x][y]+1;
+                                if (grassArr[x][y] > grassCounter)
+                                {
+                                    grassArr[x][y] = empty;
+                                    var rand = Math.random();
+                                    if (rand < 0.3)
+                                    {
+                                        grassArr[x][y] = empty;
+                                        board[x][y] = grass;
+                                        x = x+1;
+                                    }
+                                    else if (rand < 0.6)
+                                    {
+                                        grassArr[x][y] = empty;
+                                        board[x][y] = grass;
+                                        x = x-1;
+                                    }
+                                    else
+                                        x = i;
+                                    grassArr[x][y] = empty;
+                                    board[x][y] = grass;
+                                }
+                            }    
+                        y = y-1;
+                    }
+                break;
             }
         }       
 }
