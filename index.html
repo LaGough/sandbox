@@ -1,28 +1,32 @@
 <!doctype html>
 <script src="sandbox.js"></script>
-<html style="margin: 0; height: 100%; overflow-x: hidden; overflow-y: hidden; position:relative">
+<html>
 	<head>
 		<title>sandbox</title>
+        <link rel="stylesheet" href="styles.css">
 	</head>
-	<body>
+	<body class="page">
+        <div>
             <header>
-                Размер частиц:<input id="k" type="range" min=1 step = 1 max=15 oninput="javascript: SetK_Sz()">
+                Размер частиц:</b><input id="k" type="range" min=1 step = 1 max=15 oninput="javascript: SetK_Sz()">
                 Размер поля: <input id="sz" type="range" min=100 step = 100 max=1500 oninput="javascript: SetK_Sz()">
                 Длина растений: <input id="grassLength" type="range" min="10" step = 10 max="50" oninput="javascript: SetK_Sz()">
                 Частица: 
                 <select id="particle">
-                    <option>Песок</option>
-                    <option>Кирпич</option>
-                    <option>Вода</option>
-                    <option>Пар</option>
-                    <option>Земля</option>
-                    <option>Огонь</option>
-                    <option>Ластик</option>
-                    <option>Семечко</option>
+                    <option style="color: yellow">Песок</option>
+                    <option style="color: #800000">Кирпич</option>
+                    <option style="color: blue">Вода</option>
+                    <option style="color: red">Пар</option>
+                    <option style="color: #964B00">Земля</option>
+                    <option style="color: #FDA50F">Огонь</option>
+                    <option style="color: white">Ластик</option>
+                    <option style="color: #99FF99">Семечко</option>
                 </select>
                 <input type="button" value="Очистить" onclick="javascript: SetK_Sz()">
             </header>
+            <br>
             <canvas id='board'></canvas>
             <script>init()</script>
+        </div>
 	</body>
 </html>
