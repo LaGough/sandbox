@@ -2,8 +2,8 @@ const steamCounter = 500;
 const earthCounter = 500;
 const fireCounter = 4;
 const brickCounter = 25;
-const seedCounter = 1;
-const grassCounter = 10;
+const seedCounter = 200;
+const grassCounter = 200;
 
 const empty = 0;
 const sand = 1;
@@ -96,6 +96,14 @@ function init() {
         grassArr[i] = new Array(Math.floor(canvas.height/k));
         for (var j = 0;j < grassArr[i].length;j++)
             grassArr[i][j] = empty;
+    }
+
+    var sunArr = new Array(Math.floor(canvas.width/k));
+    for (var i=0;i<sunArr.length;i++)
+    {
+        sunArr[i] = new Array(Math.floor(canvas.height/k));
+        for (var j = 0;j < sunArr[i].length;j++)
+            sunArr[i][j] = empty;
     }
 
     canvas.addEventListener('mousedown', function(event) 
@@ -606,6 +614,7 @@ function step(board,steamArr, earthArr, fireArr, brickArr, seedArr, grassArr)
                                     grassArr[x][y] = empty;
                                     board[x][y] = grass;
                                 }
+                                break;
                             }    
                         y = y-1;
                     }

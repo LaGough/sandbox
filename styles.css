@@ -1,0 +1,14 @@
+.page {
+    margin-left:auto;
+    margin-right:auto;
+    align-items: center;
+    text-align: center;
+}
+
+select, input[type=button] {
+    border-color: black;
+    border-radius: 20px;
+    color: white;
+    background-color: black;
+}
+
