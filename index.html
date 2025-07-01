@@ -1,4 +1,4 @@
-<!doctype html>
+<!-- <!doctype html>
 <script src="sandbox.js"></script>
 <html>
 	<head>
@@ -29,4 +29,70 @@
             <script>init()</script>
         </div>
 	</body>
+</html> -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GET-запрос (текстовый ответ)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        #output {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            min-height: 50px;
+            white-space: pre-wrap; /* Сохраняет переносы строк */
+        }
+    </style>
+</head>
+<body>
+    <h1>Отправка GET-запроса</h1>
+    
+    <input type="text" id="inputText" placeholder="Введите параметр">
+    <button onclick="sendRequest()">Отправить</button>
+    
+    <div id="output">Ответ сервера появится здесь...</div>
+
+    <script>
+        function sendRequest() {
+            const inputText = document.getElementById('inputText').value;
+            const outputDiv = document.getElementById('output');
+            
+            if (!inputText) {
+                outputDiv.textContent = 'Введите параметр для запроса!';
+                return;
+            }
+
+            const xhr = new XMLHttpRequest();
+            
+            // Ваш URL (пример с параметром из inputText)
+            const url = `http://95.71.125.195:8087/InfoBase/hs/AI/ask?query=${encodeURIComponent(inputText)}`;
+            
+            xhr.open('GET', url, true);
+            
+            xhr.onload = function() {
+                if (xhr.status === 200) {
+                    // Выводим сырой текст ответа "как есть"
+                    outputDiv.textContent = xhr.responseText;
+                } else {
+                    outputDiv.textContent = 'Ошибка: HTTP-' + xhr.status;
+                }
+            };
+            
+            xhr.onerror = function() {
+                outputDiv.textContent = 'Ошибка сети! Проверьте подключение.';
+            };
+            
+            xhr.send();
+        }
+    </script>
+</body>
 </html>
